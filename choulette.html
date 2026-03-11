@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Choulette</title>
+  <link rel="stylesheet" href="css/style.css" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body class="page-choulette">
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">UIS & Amicale</a>
+
+      <nav class="desktop-nav" aria-label="Navigation principale">
+        <a href="choulette.html" class="nav-link active">Choulette</a>
+        <a href="produits.html" class="nav-link">Nos autres produits</a>
+        <a href="commande.html" class="nav-link">Formulaire de demande</a>
+      </nav>
+
+      <button
+        class="burger"
+        id="burgerBtn"
+        aria-label="Ouvrir le menu"
+        aria-expanded="false"
+        aria-controls="mobileMenu"
+        type="button"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <nav class="mobile-menu" id="mobileMenu" aria-label="Navigation mobile">
+      <a href="choulette.html" class="mobile-link">Choulette</a>
+      <a href="produits.html" class="mobile-link">Nos autres produits</a>
+      <a href="commande.html" class="mobile-link">Formulaire de demande</a>
+    </nav>
+  </header>
+
+  <canvas id="webgl"></canvas>
+
+  <main>
+    <section class="panel panel-1">
+      <div class="content glass-panel">
+        <span class="eyebrow">Origine</span>
+        <h1>La Choulette</h1>
+        <p>
+          Bières artisanales brassées en fermentation haute depuis 1885 dans le
+          village d’Hordain, à 15 km de Valenciennes.
+        </p>
+      </div>
+    </section>
+
+    <section class="panel panel-2">
+      <div class="content glass-panel">
+        <span class="eyebrow">Nom</span>
+        <h2>Une identité ancrée dans le Nord</h2>
+        <p>
+          Choulette vient du nom de la balle utilisée dans le jeu de crosse,
+          un jeu traditionnel du Nord de la France.
+        </p>
+      </div>
+    </section>
+
+    <section class="panel panel-3">
+      <div class="content glass-panel">
+        <span class="eyebrow">Histoire</span>
+        <h2>Une bière devenue emblématique</h2>
+        <p>
+          Importée par un ancien mécano de Cambrai devenu instructeur à l’EETIS
+          Mirage 2000 de Dijon, elle est devenue la boisson officielle de l’UIS,
+          implanté sur la BA 116 de Luxeuil-les-Bains depuis 2017.
+        </p>
+      </div>
+    </section>
+
+    <section class="panel panel-4 panel-final">
+      <div class="content final-intro glass-panel">
+        <span class="eyebrow">Gamme</span>
+        <h2>Les différents goûts</h2>
+        <p>
+          Blanche, blonde ou ambrée : trois expressions d’un même caractère brassicole.
+        </p>
+      </div>
+
+      <div class="flavors">
+        <article class="flavor-card blanche">
+          <div class="mini-canvas" id="card-blanche"></div>
+         <span class="flavor-badge">Fraîcheur</span> 
+          <h3>Blanche</h3>
+          <p>Fraîche et légère - 5% Vol.</p>
+        </article>
+<br>
+        <article class="flavor-card blonde">
+          <div class="mini-canvas" id="card-blonde"></div>
+          <span class="flavor-badge">Équilibre</span><h3>Blonde</h3>
+          <p>Équilibrée et dorée - 8.5% Vol.</p>
+        </article>
+<br>
+        <article class="flavor-card ambree">
+          <div class="mini-canvas" id="card-ambree"></div>
+          <span class="flavor-badge">Caractère</span><h3>Ambrée</h3>
+          <p>Ronde et généreuse - 8.5% Vol.</p>
+        </article>
+        <br>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer choulette-footer">
+    <p>By Parkaf - V1.00 - 10/03/2026</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script type="module" src="js/choulette.js"></script>
+</body>
+</html>

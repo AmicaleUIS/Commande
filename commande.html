@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formulaire de demande</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">UIS & Amicale</a>
+
+      <nav class="desktop-nav" aria-label="Navigation principale">
+        <a href="choulette.html" class="nav-link">Choulette</a>
+        <a href="produits.html" class="nav-link">Nos autres produits</a>
+        <a href="commande.html" class="nav-link active">Formulaire de demande</a>
+      </nav>
+
+      <button
+        class="burger"
+        id="burgerBtn"
+        aria-label="Ouvrir le menu"
+        aria-expanded="false"
+        aria-controls="mobileMenu"
+        type="button"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <nav class="mobile-menu" id="mobileMenu" aria-label="Navigation mobile">
+      <a href="choulette.html" class="mobile-link">Choulette</a>
+      <a href="produits.html" class="mobile-link">Nos autres produits</a>
+      <a href="commande.html" class="mobile-link active">Formulaire de demande</a>
+    </nav>
+  </header>
+
+  <main class="standard-page order-page">
+    <section class="hero-simple">
+      <div class="glass-panel centered-panel narrow-panel">
+        <span class="eyebrow">Commande</span>
+        <h1>Commande La Choulette</h1>
+        <p>
+          Cette demande concerne uniquement <strong>La Choulette</strong>.
+          Vous pouvez commander à l’unité, par demi-carton, par carton complet,
+          avec ou sans panachage.
+        </p>
+      </div>
+    </section>
+
+    <section class="content-section single-col">
+      <div class="glass-panel form-panel">
+        <div class="price-box">
+          <h2>Tarifs</h2>
+          <ul class="price-list">
+            <li>1 bouteille de 75 cl : <strong>4 €</strong></li>
+            <li>1/2 carton (6 bouteilles) : <strong>23 €</strong> — panachage possible</li>
+            <li>1 carton (12 bouteilles) : <strong>43 €</strong> — panachage possible</li>
+          </ul>
+          <p class="price-note">
+            Le panachage peut être détaillé carton par carton directement dans le formulaire.
+          </p>
+        </div>
+
+        <form class="order-form" id="orderForm">
+          <div class="form-grid two-columns-form">
+            <div class="form-row">
+              <label for="nom">Nom</label>
+              <input type="text" id="nom" name="nom" placeholder="Votre nom" required />
+            </div>
+
+            <div class="form-row">
+              <label for="prenom">Prénom</label>
+              <input type="text" id="prenom" name="prenom" placeholder="Votre prénom" required />
+            </div>
+
+            <div class="form-row">
+              <label for="base">Base d’appartenance</label>
+              <select id="base" name="base" required>
+                <option value="">Sélectionner</option>
+                <option value="Civil">Civil</option>
+                <option value="BA 116">BA 116</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+
+            <div class="form-row" id="baseAutreRow" style="display:none;">
+              <label for="baseAutre">Préciser la base</label>
+              <input type="text" id="baseAutre" name="baseAutre" placeholder="Ex. BA 118" />
+            </div>
+
+            <div class="form-row">
+              <label for="unite">Unité</label>
+              <input type="text" id="unite" name="unite" placeholder="Votre unité" required />
+            </div>
+          </div>
+
+          <div class="order-block">
+            <h2>1) Bouteilles à l’unité (75 cl — 4 €)</h2>
+
+            <div class="form-grid three-columns-form">
+              <div class="form-row">
+                <label for="uBlanche">Blanche</label>
+                <input type="number" id="uBlanche" min="0" value="0" />
+              </div>
+
+              <div class="form-row">
+                <label for="uBlonde">Blonde</label>
+                <input type="number" id="uBlonde" min="0" value="0" />
+              </div>
+
+              <div class="form-row">
+                <label for="uAmbree">Ambrée</label>
+                <input type="number" id="uAmbree" min="0" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="order-block">
+            <h2>2) Demi-cartons (6 bouteilles — 23 €)</h2>
+
+            <div class="form-row checkbox-row">
+              <label class="check-line">
+                <input type="checkbox" id="halfPanache" />
+                <span>Avec panachage</span>
+              </label>
+            </div>
+
+            <div id="halfSimpleBlock">
+              <div class="form-grid three-columns-form">
+                <div class="form-row">
+                  <label for="halfBlanche">Demi-cartons Blanche</label>
+                  <input type="number" id="halfBlanche" min="0" value="0" />
+                </div>
+
+                <div class="form-row">
+                  <label for="halfBlonde">Demi-cartons Blonde</label>
+                  <input type="number" id="halfBlonde" min="0" value="0" />
+                </div>
+
+                <div class="form-row">
+                  <label for="halfAmbree">Demi-cartons Ambrée</label>
+                  <input type="number" id="halfAmbree" min="0" value="0" />
+                </div>
+              </div>
+            </div>
+
+            <div id="halfPanacheBlock" style="display:none;">
+              <div class="form-row">
+                <label for="halfQtyPanache">Nombre de demi-cartons panachés</label>
+                <input type="number" id="halfQtyPanache" min="0" value="0" />
+              </div>
+
+              <div id="halfPanacheItems" class="panache-items"></div>
+            </div>
+          </div>
+
+          <div class="order-block">
+            <h2>3) Cartons complets (12 bouteilles — 43 €)</h2>
+
+            <div class="form-row checkbox-row">
+              <label class="check-line">
+                <input type="checkbox" id="fullPanache" />
+                <span>Avec panachage</span>
+              </label>
+            </div>
+
+            <div id="fullSimpleBlock">
+              <div class="form-grid three-columns-form">
+                <div class="form-row">
+                  <label for="fullBlanche">Cartons Blanche</label>
+                  <input type="number" id="fullBlanche" min="0" value="0" />
+                </div>
+
+                <div class="form-row">
+                  <label for="fullBlonde">Cartons Blonde</label>
+                  <input type="number" id="fullBlonde" min="0" value="0" />
+                </div>
+
+                <div class="form-row">
+                  <label for="fullAmbree">Cartons Ambrée</label>
+                  <input type="number" id="fullAmbree" min="0" value="0" />
+                </div>
+              </div>
+            </div>
+
+            <div id="fullPanacheBlock" style="display:none;">
+              <div class="form-row">
+                <label for="fullQtyPanache">Nombre de cartons panachés</label>
+                <input type="number" id="fullQtyPanache" min="0" value="0" />
+              </div>
+
+              <div id="fullPanacheItems" class="panache-items"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="message">Précisions complémentaires</label>
+            <textarea
+              id="message"
+              name="message"
+              rows="5"
+              placeholder="Informations complémentaires, remarques, souhaits particuliers..."
+            ></textarea>
+          </div>
+
+          <div class="recap-box">
+            <h2>Récapitulatif estimatif</h2>
+            <p id="orderSummary">Aucun article sélectionné pour le moment.</p>
+            <p class="total-price">
+              Total estimatif : <strong id="totalPrice">0 €</strong>
+            </p>
+          </div>
+
+          <button type="submit" class="submit-btn">Envoyer la commande</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>By Parkaf - V1.00 - 10/03/2026</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/commande.js"></script>
+</body>
+</html>
