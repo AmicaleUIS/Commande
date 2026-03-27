@@ -1,6 +1,7 @@
 const orderForm = document.getElementById("orderForm");
 const orderSummary = document.getElementById("orderSummary");
 const totalPrice = document.getElementById("totalPrice");
+const resetOrderBtn = document.getElementById("resetOrderBtn");
 
 const STORAGE_KEY = "choulette_commande_form_v1";
 
@@ -50,16 +51,28 @@ const PRICES = {
 
 let suppressAutoSave = false;
 
+/* =========================
+   OUTILS
+========================= */
+
 function numberValue(input) {
   return Math.max(0, parseInt(input?.value || "0", 10) || 0);
 }
 
+function safeTrim(value) {
+  return String(value || "").trim();
+}
+
 function getBaseValue() {
   if (fields.base.value === "Autre") {
-    return fields.baseAutre.value.trim() || "Autre";
+    return safeTrim(fields.baseAutre.value) || "Autre";
   }
   return fields.base.value;
 }
+
+/* =========================
+   AFFICHAGE CONDITIONNEL
+========================= */
 
 function updateConditionalFields() {
   const isBaseAutre = fields.base.value === "Autre";
@@ -73,7 +86,11 @@ function updateConditionalFields() {
   ui.fullPanacheBlock.style.display = fields.fullPanache.checked ? "block" : "none";
 }
 
-function createPanacheCardHTML(type, index, max) {
+/* =========================
+   PANACHAGE
+========================= */
+
+function createPanacheCardHTML(type, index, maxPerBox) {
   const title = type === "half" ? "Demi-carton" : "Carton";
 
   return `
@@ -83,114 +100,25 @@ function createPanacheCardHTML(type, index, max) {
       <div class="form-grid three-columns-form">
         <div class="form-row">
           <label>Blanche</label>
-          <input type="number" class="${type}-blanche" min="0" max="${max}" value="0" />
+          <input type="number" class="${type}-blanche" min="0" max="${maxPerBox}" value="0" />
         </div>
 
         <div class="form-row">
           <label>Blonde</label>
-          <input type="number" class="${type}-blonde" min="0" max="${max}" value="0" />
+          <input type="number" class="${type}-blonde" min="0" max="${maxPerBox}" value="0" />
         </div>
 
         <div class="form-row">
           <label>Ambrée</label>
-          <input type="number" class="${type}-ambree" min="0" max="${max}" value="0" />
+          <input type="number" class="${type}-ambree" min="0" max="${maxPerBox}" value="0" />
         </div>
       </div>
 
       <p class="panache-total">
-        Total : <strong>0 / ${max}</strong>
+        Total : <strong>0 / ${maxPerBox}</strong>
       </p>
     </div>
   `;
-}
-
-function generatePanacheCards(container, qty, type, maxPerBox) {
-  container.innerHTML = "";
-
-  for (let i = 0; i < qty; i += 1) {
-    container.insertAdjacentHTML("beforeend", createPanacheCardHTML(type, i, maxPerBox));
-  }
-
-  container.querySelectorAll("input[type='number']").forEach((input) => {
-    input.addEventListener("input", () => {
-      enforcePanacheLimit(input.closest(".panache-card"), maxPerBox);
-      buildSummary();
-      saveFormState();
-    });
-
-    input.addEventListener("change", () => {
-      enforcePanacheLimit(input.closest(".panache-card"), maxPerBox);
-      buildSummary();
-      saveFormState();
-    });
-  });
-}
-
-function enforcePanacheLimit(card, maxPerBox) {
-  if (!card) return;
-
-  const inputs = Array.from(card.querySelectorAll("input[type='number']"));
-  let total = inputs.reduce((sum, input) => sum + numberValue(input), 0);
-
-  if (total > maxPerBox) {
-    const activeInput = document.activeElement;
-
-    if (activeInput && inputs.includes(activeInput)) {
-      const otherTotal = inputs
-        .filter((input) => input !== activeInput)
-        .reduce((sum, input) => sum + numberValue(input), 0);
-
-      const maxAllowed = Math.max(0, maxPerBox - otherTotal);
-      activeInput.value = String(maxAllowed);
-    }
-  }
-
-  total = inputs.reduce((sum, input) => sum + numberValue(input), 0);
-
-  const totalDisplay = card.querySelector(".panache-total strong");
-  if (totalDisplay) {
-    totalDisplay.textContent = `${total} / ${maxPerBox}`;
-  }
-
-  card.classList.remove("is-over", "is-complete");
-
-  if (total > maxPerBox) {
-    card.classList.add("is-over");
-  } else if (total === maxPerBox) {
-    card.classList.add("is-complete");
-  }
-}
-
-function refreshPanacheSections() {
-  if (fields.halfPanache.checked) {
-    generatePanacheCards(
-      ui.halfPanacheItems,
-      numberValue(fields.halfQtyPanache),
-      "half",
-      6
-    );
-  } else {
-    ui.halfPanacheItems.innerHTML = "";
-  }
-
-  if (fields.fullPanache.checked) {
-    generatePanacheCards(
-      ui.fullPanacheItems,
-      numberValue(fields.fullQtyPanache),
-      "full",
-      12
-    );
-  } else {
-    ui.fullPanacheItems.innerHTML = "";
-  }
-
-  ui.halfPanacheItems.querySelectorAll(".panache-card").forEach((card) => {
-    enforcePanacheLimit(card, 6);
-  });
-
-  ui.fullPanacheItems.querySelectorAll(".panache-card").forEach((card) => {
-    enforcePanacheLimit(card, 12);
-  });
 }
 
 function readPanacheCards(container, type) {
@@ -212,9 +140,131 @@ function readPanacheCards(container, type) {
   });
 }
 
+function updatePanacheCardVisual(card, maxPerBox) {
+  if (!card) return;
+
+  const inputs = Array.from(card.querySelectorAll("input[type='number']"));
+  const total = inputs.reduce((sum, input) => sum + numberValue(input), 0);
+
+  const totalDisplay = card.querySelector(".panache-total strong");
+  if (totalDisplay) {
+    totalDisplay.textContent = `${total} / ${maxPerBox}`;
+  }
+
+  card.classList.remove("is-over", "is-complete");
+
+  if (total > maxPerBox) {
+    card.classList.add("is-over");
+  } else if (total === maxPerBox) {
+    card.classList.add("is-complete");
+  }
+}
+
+function enforcePanacheLimit(card, maxPerBox) {
+  if (!card) return;
+
+  const inputs = Array.from(card.querySelectorAll("input[type='number']"));
+  let total = inputs.reduce((sum, input) => sum + numberValue(input), 0);
+
+  if (total > maxPerBox) {
+    const activeInput = document.activeElement;
+
+    if (activeInput && inputs.includes(activeInput)) {
+      const otherTotal = inputs
+        .filter((input) => input !== activeInput)
+        .reduce((sum, input) => sum + numberValue(input), 0);
+
+      const maxAllowed = Math.max(0, maxPerBox - otherTotal);
+      activeInput.value = String(maxAllowed);
+    }
+  }
+
+  updatePanacheCardVisual(card, maxPerBox);
+}
+
+function attachPanacheCardEvents(container, maxPerBox) {
+  container.querySelectorAll("input[type='number']").forEach((input) => {
+    input.addEventListener("input", () => {
+      const card = input.closest(".panache-card");
+      enforcePanacheLimit(card, maxPerBox);
+      buildSummary();
+      saveFormState();
+    });
+
+    input.addEventListener("change", () => {
+      const card = input.closest(".panache-card");
+      enforcePanacheLimit(card, maxPerBox);
+      buildSummary();
+      saveFormState();
+    });
+  });
+}
+
+function generatePanacheCards(container, qty, type, maxPerBox, existingCards = []) {
+  container.innerHTML = "";
+
+  for (let i = 0; i < qty; i += 1) {
+    container.insertAdjacentHTML("beforeend", createPanacheCardHTML(type, i, maxPerBox));
+  }
+
+  const cards = Array.from(container.querySelectorAll(".panache-card"));
+
+  cards.forEach((card, index) => {
+    const saved = existingCards[index];
+    if (!saved) return;
+
+    const blancheInput = card.querySelector(`.${type}-blanche`);
+    const blondeInput = card.querySelector(`.${type}-blonde`);
+    const ambreeInput = card.querySelector(`.${type}-ambree`);
+
+    if (blancheInput) blancheInput.value = saved.blanche ?? 0;
+    if (blondeInput) blondeInput.value = saved.blonde ?? 0;
+    if (ambreeInput) ambreeInput.value = saved.ambree ?? 0;
+  });
+
+  attachPanacheCardEvents(container, maxPerBox);
+
+  cards.forEach((card) => {
+    enforcePanacheLimit(card, maxPerBox);
+  });
+}
+
+function refreshPanacheSections() {
+  const currentHalfCards = readPanacheCards(ui.halfPanacheItems, "half");
+  const currentFullCards = readPanacheCards(ui.fullPanacheItems, "full");
+
+  if (fields.halfPanache.checked) {
+    generatePanacheCards(
+      ui.halfPanacheItems,
+      numberValue(fields.halfQtyPanache),
+      "half",
+      6,
+      currentHalfCards
+    );
+  } else {
+    ui.halfPanacheItems.innerHTML = "";
+  }
+
+  if (fields.fullPanache.checked) {
+    generatePanacheCards(
+      ui.fullPanacheItems,
+      numberValue(fields.fullQtyPanache),
+      "full",
+      12,
+      currentFullCards
+    );
+  } else {
+    ui.fullPanacheItems.innerHTML = "";
+  }
+}
+
 function validatePanacheCards(cards, maxPerBox) {
   return cards.every((card) => card.total === maxPerBox);
 }
+
+/* =========================
+   RÉCAPITULATIF
+========================= */
 
 function buildSummary() {
   const uBlanche = numberValue(fields.uBlanche);
@@ -360,27 +410,6 @@ function saveFormState() {
   }
 }
 
-function restorePanacheCards(container, type, cardsData, maxPerBox) {
-  if (!Array.isArray(cardsData)) return;
-
-  const cards = Array.from(container.querySelectorAll(".panache-card"));
-
-  cardsData.forEach((data, index) => {
-    const card = cards[index];
-    if (!card) return;
-
-    const blancheInput = card.querySelector(`.${type}-blanche`);
-    const blondeInput = card.querySelector(`.${type}-blonde`);
-    const ambreeInput = card.querySelector(`.${type}-ambree`);
-
-    if (blancheInput) blancheInput.value = data.blanche ?? 0;
-    if (blondeInput) blondeInput.value = data.blonde ?? 0;
-    if (ambreeInput) ambreeInput.value = data.ambree ?? 0;
-
-    enforcePanacheLimit(card, maxPerBox);
-  });
-}
-
 function restoreFormState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -415,12 +444,33 @@ function restoreFormState() {
     fields.message.value = state.message ?? "";
 
     updateConditionalFields();
-    refreshPanacheSections();
 
-    restorePanacheCards(ui.halfPanacheItems, "half", state.halfCards, 6);
-    restorePanacheCards(ui.fullPanacheItems, "full", state.fullCards, 12);
+    if (fields.halfPanache.checked) {
+      generatePanacheCards(
+        ui.halfPanacheItems,
+        numberValue(fields.halfQtyPanache),
+        "half",
+        6,
+        Array.isArray(state.halfCards) ? state.halfCards : []
+      );
+    } else {
+      ui.halfPanacheItems.innerHTML = "";
+    }
+
+    if (fields.fullPanache.checked) {
+      generatePanacheCards(
+        ui.fullPanacheItems,
+        numberValue(fields.fullQtyPanache),
+        "full",
+        12,
+        Array.isArray(state.fullCards) ? state.fullCards : []
+      );
+    } else {
+      ui.fullPanacheItems.innerHTML = "";
+    }
 
     buildSummary();
+
     suppressAutoSave = false;
     saveFormState();
   } catch (error) {
@@ -429,11 +479,57 @@ function restoreFormState() {
   }
 }
 
+function clearOrderForm() {
+  suppressAutoSave = true;
+
+  orderForm.reset();
+
+  fields.nom.value = "";
+  fields.prenom.value = "";
+  fields.base.value = "";
+  fields.baseAutre.value = "";
+  fields.unite.value = "";
+
+  fields.uBlanche.value = 0;
+  fields.uBlonde.value = 0;
+  fields.uAmbree.value = 0;
+
+  fields.halfPanache.checked = false;
+  fields.halfBlanche.value = 0;
+  fields.halfBlonde.value = 0;
+  fields.halfAmbree.value = 0;
+  fields.halfQtyPanache.value = 0;
+
+  fields.fullPanache.checked = false;
+  fields.fullBlanche.value = 0;
+  fields.fullBlonde.value = 0;
+  fields.fullAmbree.value = 0;
+  fields.fullQtyPanache.value = 0;
+
+  fields.message.value = "";
+
+  ui.halfPanacheItems.innerHTML = "";
+  ui.fullPanacheItems.innerHTML = "";
+
+  updateConditionalFields();
+  buildSummary();
+
+  localStorage.removeItem(STORAGE_KEY);
+
+  suppressAutoSave = false;
+}
+
 /* =========================
    ÉVÉNEMENTS
 ========================= */
 
-function handleLiveUpdate() {
+function handleSimpleLiveUpdate() {
+  updateConditionalFields();
+  buildSummary();
+  saveFormState();
+}
+
+function handlePanacheStructureUpdate() {
   updateConditionalFields();
   refreshPanacheSections();
   buildSummary();
@@ -451,35 +547,36 @@ function handleLiveUpdate() {
   fields.uBlonde,
   fields.uAmbree,
 
-  fields.halfPanache,
   fields.halfBlanche,
   fields.halfBlonde,
   fields.halfAmbree,
-  fields.halfQtyPanache,
 
-  fields.fullPanache,
   fields.fullBlanche,
   fields.fullBlonde,
   fields.fullAmbree,
-  fields.fullQtyPanache,
 
   fields.message
 ].forEach((field) => {
   if (!field) return;
-  field.addEventListener("input", handleLiveUpdate);
-  field.addEventListener("change", handleLiveUpdate);
+  field.addEventListener("input", handleSimpleLiveUpdate);
+  field.addEventListener("change", handleSimpleLiveUpdate);
 });
 
-updateConditionalFields();
-refreshPanacheSections();
-restoreFormState();
-buildSummary();
+[
+  fields.halfPanache,
+  fields.halfQtyPanache,
+  fields.fullPanache,
+  fields.fullQtyPanache
+].forEach((field) => {
+  if (!field) return;
+  field.addEventListener("input", handlePanacheStructureUpdate);
+  field.addEventListener("change", handlePanacheStructureUpdate);
+});
 
 orderForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   updateConditionalFields();
-  refreshPanacheSections();
 
   if (!orderForm.reportValidity()) {
     saveFormState();
@@ -500,11 +597,11 @@ orderForm.addEventListener("submit", (event) => {
     return;
   }
 
-  const nom = fields.nom.value.trim();
-  const prenom = fields.prenom.value.trim();
+  const nom = safeTrim(fields.nom.value);
+  const prenom = safeTrim(fields.prenom.value);
   const base = getBaseValue();
-  const unite = fields.unite.value.trim();
-  const message = fields.message.value.trim();
+  const unite = safeTrim(fields.unite.value);
+  const message = safeTrim(fields.message.value);
 
   const bodyLines = [
     "Bonjour,",
@@ -577,3 +674,20 @@ orderForm.addEventListener("submit", (event) => {
   window.location.href =
     `mailto:amicaleuis.m2000@gmail.com?subject=${subject}&body=${body}`;
 });
+
+if (resetOrderBtn) {
+  resetOrderBtn.addEventListener("click", () => {
+    const confirmed = window.confirm("Voulez-vous vraiment vider toute la commande ?");
+    if (!confirmed) return;
+
+    clearOrderForm();
+  });
+}
+
+/* =========================
+   INITIALISATION
+========================= */
+
+updateConditionalFields();
+restoreFormState();
+buildSummary();
